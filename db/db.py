@@ -1,6 +1,8 @@
 import psycopg
 from psycopg import sql
 import os
+from dotenv import load_dotenv
+load_dotenv()  # Load the .env file
 
 DB_HOST = os.getenv("DB_HOST")
 DB_NAME = os.getenv("DB_NAME")
@@ -12,9 +14,9 @@ def get_db_connection():
     try:
         conn = psycopg.connect(
             host=DB_HOST,
-            database=DB_NAME,
+            dbname=DB_NAME,
             user=DB_USER,
-            password=DB_NAME
+            password=DB_PASSWORD
         )
         return conn 
     except Exception as e:
