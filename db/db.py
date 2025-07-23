@@ -2,6 +2,8 @@ import psycopg
 from psycopg import sql
 import os
 from dotenv import load_dotenv
+from psycopg.rows import dict_row
+
 load_dotenv()  # Load the .env file
 
 DB_HOST = os.getenv("DB_HOST")
@@ -13,6 +15,7 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 def get_db_connection():
     try:
         conn = psycopg.connect(
+            row_factory=dict_row,
             host=DB_HOST,
             dbname=DB_NAME,
             user=DB_USER,
