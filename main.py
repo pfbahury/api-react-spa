@@ -5,7 +5,8 @@ from routes import boletos
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"]
+    allow_origins=["*"],
+    allow_methods=["GET", "POST"]
 )
 
 app.include_router(boletos.router)
