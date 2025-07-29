@@ -38,35 +38,8 @@ def get_boletos():
             cursor.close()
             conn.close()
 
-@router.post("/boletos")
-async def post_boletos(boleto: Boleto):
-    if not boleto:
-        raise HTTPException(status_code=400, detail="Body missing or incomplete")
-    
-    conn = get_db_connection()
-    if conn is None:
-        raise HTTPException(status_code=500, detail="Database connection failed")
-    
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO boletos (numero_boleto, data_emissao, data_vencimento, valor, status, cliente, empresa) values (%s,%s,%s,%s,%s,%s,%s)",
-            (boleto.numero_boleto, boleto.data_emissao, boleto.data_vencimento, boleto.valor, boleto.status, boleto.cliente, boleto.empresa)
-        )
-        conn.commit()
 
-        return{"message": "New Item created successfully!"}
-
-    except Error as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Database Error : {e}")
-    
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
-
-@router.get("/boletos/{numero_boleto}")
+@router.get("/boletos/{numero_boleto}", response_model=Boleto)
 async def get_boleto_by_number(numero_boleto: str):
     if not numero_boleto:
         raise HTTPException(status_code=400, detail="numero_boleto missing")
@@ -96,3 +69,59 @@ async def get_boleto_by_number(numero_boleto: str):
             cursor.close()
             conn.close()
 
+
+@router.post("/boletos")
+async def post_boletos(boleto: Boleto):
+    if not boleto:
+        raise HTTPException(status_code=400, detail="Body missing or incomplete")
+    
+    conn = get_db_connection()
+    if conn is None:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO boletos (numero_boleto, data_emissao, data_vencimento, valor, status, cliente, empresa) values (%s,%s,%s,%s,%s,%s,%s)",
+            (boleto.numero_boleto, boleto.data_emissao, boleto.data_vencimento, boleto.valor, boleto.status, boleto.cliente, boleto.empresa)
+        )
+        conn.commit()
+
+        return{"message": "New Item created successfully!"}
+
+    except Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database Error : {e}")
+    
+    finally:
+        if conn:
+            cursor.close()
+            conn.close()
+
+
+
+@router.patch("/boletos/", response_model=Boleto)
+async def update_boleto( boleto: Boleto):
+    conn = get_db_connection()
+    if conn is None:
+        raise HTTPException(status_code=500, detail="Database connection failed")
+    
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+                       UPDATE boletos
+                       SET data_emissao=%s, data_vencimento=%s, valor=%s, status=%s, cliente=%s, empresa=%s
+                       WHERE numero_boleto = %s
+                       """, (boleto.data_emissao, boleto.data_vencimento, boleto.valor, boleto.status, boleto.cliente, boleto.empresa, boleto.numero_boleto))
+        conn.commit()
+
+        if not cursor.rowcount == 0:
+            return boleto
+
+    except Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database Error: {e}")
+    finally: 
+        if conn:
+            cursor.close()
+            conn.close()
