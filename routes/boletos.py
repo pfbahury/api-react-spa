@@ -65,3 +65,34 @@ async def post_boletos(boleto: Boleto):
         if conn:
             cursor.close()
             conn.close()
+
+@router.get("/boletos/{numero_boleto}")
+async def get_boleto_by_number(numero_boleto: str):
+    if not numero_boleto:
+        raise HTTPException(status_code=400, detail="numero_boleto missing")
+    
+    conn = get_db_connection()
+    
+    if conn is None :
+        raise HTTPException(status_code=500, detail="Database connection failed")
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+                        SELECT numero_boleto, data_emissao, data_vencimento, valor, status,cliente, empresa
+                        FROM boletos
+                        WHERE numero_boleto = %s;
+                        """, [numero_boleto])
+        boleto = cursor.fetchone()
+
+        if boleto:
+            return boleto
+        
+    except Error as e :
+        raise HTTPException(status_code=500, detail=f"Database Error : {e}")
+    
+    finally:
+        if conn:
+            cursor.close()
+            conn.close()
+
